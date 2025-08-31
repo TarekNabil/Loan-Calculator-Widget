@@ -1,0 +1,12 @@
+.loan-calculator-widget {
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+.loan-calculator-widget h3 {
+    margin-bottom: 15px;
+}
+.loan-calculator-widget p {
+    margin: 5px 0;
+}

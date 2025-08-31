@@ -1,0 +1,31 @@
+
+.calculator-title.hidden,
+.form-group.hidden {
+    display: none;
+}
+
+.inputs-title-wrapper,
+.outputs-title-wrapper{
+    display: flex;
+    align-items: center;
+}
+.inputs-title,.outputs-title{margin-right: 10px; white-space: nowrap;}
+.line-after-title{
+    flex-grow: 1; 
+}
+.loan-calculator-widget input{
+    border-style: solid;
+}
+.loan-calculator-widget button{
+    cursor: pointer;
+}
+.loan-calculator-widget p.description{
+    margin: 0;
+}
+.loan-result-wrapper{
+    display:none;
+}
+.loan-calculator-widget .form-group.calculate-button-wrapper{
+display: flex;
+flex-direction: column;
+}
