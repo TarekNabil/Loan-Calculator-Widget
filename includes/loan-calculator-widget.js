@@ -169,7 +169,7 @@ function calculateLoan() {
     console.log(`Monthly Payment Before Rounding: ${monthlyPaymentBeforeRounding}`);
     const totalMonthlyPayment = Math.ceil(parseFloat(monthlyPaymentBeforeRounding)); // Total monthly payment
     const effectiveAPR = calculateEffectiveAPR(loanTermMonths, totalMonthlyPayment, disbursedLoanAmount).toFixed(2); // Calculate effective APR and convert to percentage with 2 decimals
-    console.log('we will add the table now');
+    
     // Change fields at the form
     document.getElementById('apr-interest-equivalent').value = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
     document.getElementById('file-fees').value = fileFees;
@@ -191,44 +191,6 @@ function calculateLoan() {
     // add apr to calculation notes
     const aprInNotes = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
     document.getElementById('calculation-notes').innerHTML = `<span>APR rate: ${aprInNotes}%</span>`;
-    
-
-    // Display results
-    var html = `
-        <table border="1">
-        <tr>
-                <th colspan="3"><h2>Schedule</h2></th>
-            </tr>
-        <tr>
-            <th>Payment No.</th>
-            <th>Payment Date</th>
-            <th>Payment</th>
-        </tr>
-    `;
-    let balance = totalLoanAmount2;
-    let [day, month, year] = firstPaymentDate.split('-');
-    let paymentDate = new Date(`20${year}`, new Date(Date.parse(month + " 1, 2000")).getMonth(), day);
-
-    for (let i = 1; i <= loanTermMonths; i++) {
-        const interestPayment = (balance * interestRate / 12).toFixed(2);
-        const principalPayment = (totalMonthlyPayment - interestPayment).toFixed(2);
-        balance = (balance - principalPayment).toFixed(2);
-
-        const formattedDate = `${paymentDate.getDate()}-${paymentDate.toLocaleString('default', { month: 'short' })}-${paymentDate.getFullYear().toString().slice(-2)}`;
-        html += `
-            <tr>
-                <td>${i}</td>
-                <td>${formattedDate}</td>
-                <td>${totalMonthlyPayment}</td>
-            </tr>
-        `;
-
-        paymentDate.setMonth(paymentDate.getMonth() + 1); // Move to the next month
-    }
-    html += `</table>`;
-    const totalOfTotalPayments = (totalMonthlyPayment * loanTermMonths).toFixed(2);
-    html += `<p><strong>Total Payments:</strong> ${totalOfTotalPayments}</p>`;
-    document.getElementById('loan-result').innerHTML = html;
 }
 
 // Attach event listener to the button
@@ -236,5 +198,3 @@ document.getElementById('calculate-loan').addEventListener('click', calculateLoa
 document.querySelectorAll('#loan-calculator-form input, #loan-calculator-form select').forEach(element => {
     element.addEventListener('change', calculateLoan);
 });
-// Call calculateLoan when the page loads
-// document.addEventListener('DOMContentLoaded', calculateLoan);
