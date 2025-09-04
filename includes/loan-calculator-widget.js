@@ -188,8 +188,9 @@ function calculateLoan() {
     document.getElementById('total-monthly-payment').value = totalMonthlyPayment;
     document.getElementById('effective-apr').value = effectiveAPR;
 
-    // add effective-apr to calculation notes
-    document.getElementById('calculation-notes').innerHTML = `<span>APR rate: ${effectiveAPR}%</span>`;
+    // add apr to calculation notes
+    const aprInNotes = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
+    document.getElementById('calculation-notes').innerHTML = `<span>APR rate: ${aprInNotes}%</span>`;
     
 
     // Display results
