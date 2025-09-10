@@ -1,10 +1,3 @@
-// prepare the form with default values
-//set approval date to today
-document.getElementById('approval-date').value = setApprovalDate();
-// set first payment date to one month after approval date
-document.getElementById('first-payment-date').value = setFirstPaymentDate(setApprovalDate(), 15, 5); // Assuming cut-off monthly day is 15 and regular payment day is 5
-// set interest accrual till to one month before first payment date
-document.getElementById('interest-accrual-till').value = setInterestAccrualTill(document.getElementById('first-payment-date').value);
 // set First Payment Date
 // document.getElementById('first-payment-date').value = setFirstPaymentDate();
 // Function to calculate APR Interest Equivalent
@@ -46,7 +39,6 @@ function calculateAPRInterestEquivalent(months, interestRate) {
     // Excel formula pmt = (1 + (interestRate * months / 12)) / months
     const pmt = (1 + (interestRate * months / 12)) / months;
     const r = rate(months, pmt, -1); // solve for periodic rate
-    // console.log(`Calculated periodic rate: ${r}`);
     return r * 12; // annualized
   }
   
@@ -135,66 +127,101 @@ function calculateEffectiveAPR(periodMonths, MonthlyPayment, disbursedLoanAmount
     return rateI(periodMonths, -MonthlyPayment, disbursedLoanAmount) * 12*100; // Convert to annual percentage rate
 
 }
-
+function getSelectorElement(id, isPopup) {
+    if (isPopup) {
+        return document.querySelector(`.elementor-location-popup #${id}`);
+    } else {
+        return document.getElementById(id);
+    }
+}
 // Event listener for form submission
-function calculateLoan() {
+function calculateLoan(isPopup = false) {
+    // prepare the form with default values
+    // set approval date to today
+    getSelectorElement('approval-date', isPopup).value = setApprovalDate();
+    // set first payment date to one month after approval date
+    getSelectorElement('first-payment-date', isPopup).value = setFirstPaymentDate(setApprovalDate(), 15, 5); // Assuming cut-off monthly day is 15 and regular payment day is 5
+    // set interest accrual till to one month before first payment date
+    getSelectorElement('interest-accrual-till', isPopup).value = setInterestAccrualTill(getSelectorElement('first-payment-date', isPopup).value);
+
     // Get user inputs
-    const loanTermMonths = parseInt(document.getElementById('loan-term').value);
-    console.log(`Loan Term (Months): ${loanTermMonths}`);
-    const interestRate = parseFloat(document.getElementById('interest-rate').value) / 100;
-    // const aprInterestEquivalent = parseFloat(document.getElementById('apr-interest-equivalent').value) / 100; // Convert to decimal
+    const loanTermMonths = parseInt(getSelectorElement('loan-term', isPopup).value);
+    const interestRate = parseFloat(getSelectorElement('interest-rate', isPopup).value) / 100;
     const aprInterestEquivalent = calculateAPRInterestEquivalent(loanTermMonths, interestRate); // Calculate APR Interest Equivalent
-    const loanAmount = parseFloat(document.getElementById('loan-amount').value);
+    const loanAmount = parseFloat(getSelectorElement('loan-amount', isPopup).value);
+    
     const fileFees = calculateFileFees(loanAmount);
     const totalLoanAmount1 = loanAmount + fileFees;
-    const stampFees = parseFloat(document.getElementById('stamp-fees').value);
+    const stampFees = parseFloat(getSelectorElement('stamp-fees', isPopup).value);
     const disbursedLoanAmount = totalLoanAmount1 - fileFees - stampFees; 
     const approvalDate = setApprovalDate();
-    const cutOffMonthlyDay = parseInt(document.getElementById('cut-off-monthly-day').value);
-    const regularPaymentDay = parseInt(document.getElementById('regular-payment-day').value);
+    const cutOffMonthlyDay = parseInt(getSelectorElement('cut-off-monthly-day', isPopup).value);
+    const regularPaymentDay = parseInt(getSelectorElement('regular-payment-day', isPopup).value);
     const firstPaymentDate = setFirstPaymentDate(approvalDate, cutOffMonthlyDay, regularPaymentDay);
     const interestAccrualTill = setInterestAccrualTill(firstPaymentDate);
-    const AdditionalNbrofValueDays = parseInt(document.getElementById('additional-nbr-of-value-days').value);  
+    const AdditionalNbrofValueDays = parseInt(getSelectorElement('additional-nbr-of-value-days', isPopup).value);  
     const accruedInterest = setAccruedInterest(totalLoanAmount1, aprInterestEquivalent, interestAccrualTill, approvalDate, AdditionalNbrofValueDays);
     const totalLoanAmount2 = setTotalLoanAmount(totalLoanAmount1, accruedInterest);
     const monthlyPaymentExclPPI = calculateMonthlyPaymentExclPPI(totalLoanAmount2, interestRate, loanTermMonths);
-    const ppiCostPerYear = parseFloat(document.getElementById('ppi-cost-per-year').value);
+    const ppiCostPerYear = parseFloat(getSelectorElement('ppi-cost-per-year', isPopup).value);
     const ppiCostPercent = (ppiCostPerYear * loanTermMonths / 12).toFixed(6); // Convert to percentage with 6 decimals
     const additionalPPICostPerPayment = (ppiCostPercent / 100 * monthlyPaymentExclPPI).toFixed(4); // Calculate additional PPI cost per payment
     const totalPPICost = (loanTermMonths * additionalPPICostPerPayment).toFixed(2); // Calculate total PPI cost
-    const collectionMethod = document.getElementById('collection-method').value;
-    const clientsShareCollectionFee = parseFloat(document.getElementById('clients-share-collection-fee').value);
+    const collectionMethod = getSelectorElement('collection-method', isPopup).value;
+    const clientsShareCollectionFee = parseFloat(getSelectorElement('clients-share-collection-fee', isPopup).value);
     const totalClientsShareCollectionFees = loanTermMonths * clientsShareCollectionFee; // Calculate total client's share of collection fees
     const monthlyPaymentBeforeRounding = (parseFloat(monthlyPaymentExclPPI) + parseFloat(additionalPPICostPerPayment) + parseFloat(clientsShareCollectionFee)).toFixed(2); // Monthly payment before rounding
-    console.log(`Monthly Payment Before Rounding: ${monthlyPaymentBeforeRounding}`);
     const totalMonthlyPayment = Math.ceil(parseFloat(monthlyPaymentBeforeRounding)); // Total monthly payment
     const effectiveAPR = calculateEffectiveAPR(loanTermMonths, totalMonthlyPayment, disbursedLoanAmount).toFixed(2); // Calculate effective APR and convert to percentage with 2 decimals
-    
     // Change fields at the form
-    document.getElementById('apr-interest-equivalent').value = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
-    document.getElementById('file-fees').value = fileFees;
-    document.getElementById('total-loan-amount-1').value = totalLoanAmount1;
-    document.getElementById('disbursed-loan-amount').value = disbursedLoanAmount;
-    document.getElementById('first-payment-date').value = firstPaymentDate;
-    document.getElementById('interest-accrual-till').value = interestAccrualTill;
-    document.getElementById('accrued-interest').value = accruedInterest;
-    document.getElementById('total-loan-amount-2').value = totalLoanAmount2;
-    document.getElementById('monthly-payment-excl-ppi').value = monthlyPaymentExclPPI;
-    document.getElementById('ppi-cost-percent').value = ppiCostPercent;
-    document.getElementById('additional-ppi-cost-per-payment').value = additionalPPICostPerPayment;
-    document.getElementById('total-ppi-cost').value = totalPPICost;
-    document.getElementById('total-clients-share-collection-fees').value = totalClientsShareCollectionFees;
-    document.getElementById('monthly-payment-before-rounding').value = monthlyPaymentBeforeRounding;
-    document.getElementById('total-monthly-payment').value = totalMonthlyPayment;
-    document.getElementById('effective-apr').value = effectiveAPR;
+    getSelectorElement('apr-interest-equivalent', isPopup).value = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
+    getSelectorElement('file-fees', isPopup).value = fileFees;
+    getSelectorElement('total-loan-amount-1', isPopup).value = totalLoanAmount1;
+    getSelectorElement('disbursed-loan-amount', isPopup).value = disbursedLoanAmount;
+    getSelectorElement('first-payment-date', isPopup).value = firstPaymentDate;
+    getSelectorElement('interest-accrual-till', isPopup).value = interestAccrualTill;
+    getSelectorElement('accrued-interest', isPopup).value = accruedInterest;
+    getSelectorElement('total-loan-amount-2', isPopup).value = totalLoanAmount2;
+    getSelectorElement('monthly-payment-excl-ppi', isPopup).value = monthlyPaymentExclPPI;
+    getSelectorElement('ppi-cost-percent', isPopup).value = ppiCostPercent;
+    getSelectorElement('additional-ppi-cost-per-payment', isPopup).value = additionalPPICostPerPayment;
+    getSelectorElement('total-ppi-cost', isPopup).value = totalPPICost;
+    getSelectorElement('total-clients-share-collection-fees', isPopup).value = totalClientsShareCollectionFees;
+    getSelectorElement('monthly-payment-before-rounding', isPopup).value = monthlyPaymentBeforeRounding;
+    getSelectorElement('total-monthly-payment', isPopup).value = totalMonthlyPayment;
+    getSelectorElement('effective-apr', isPopup).value = effectiveAPR;
 
     // add apr to calculation notes
     const aprInNotes = (aprInterestEquivalent * 100).toFixed(2); // Convert to percentage with 2 decimals
-    document.getElementById('calculation-notes').innerHTML = `<span>APR rate: ${aprInNotes}%</span>`;
+    getSelectorElement('calculation-notes', isPopup).innerHTML = `<span>APR rate: ${aprInNotes}%</span>`;
 }
 
 // Attach event listener to the button
-document.getElementById('calculate-loan').addEventListener('click', calculateLoan);
-document.querySelectorAll('#loan-calculator-form input, #loan-calculator-form select').forEach(element => {
-    element.addEventListener('change', calculateLoan);
+// document.getElementById('calculate-loan').addEventListener('click', calculateLoan);
+// document.querySelectorAll('#loan-calculator-form input, #loan-calculator-form select').forEach(element => {
+//     element.addEventListener('change', calculateLoan);
+// });
+// Function to initialize the loan calculator logic
+function initializeLoanCalculator(isPopup = false) {
+    // Attach event listener to the button
+    const calculateButton = document.getElementById('calculate-loan');
+    if (calculateButton) {
+        calculateButton.addEventListener('click', () => calculateLoan(isPopup));
+    }
+
+    // Attach event listeners to form inputs and selects
+    const formElements = document.querySelectorAll('#loan-calculator-form input, #loan-calculator-form select');
+    formElements.forEach(element => {
+        element.addEventListener('change', () => calculateLoan(isPopup));
+    });
+}
+
+// Initialize the loan calculator on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeLoanCalculator(false);
+});
+
+// Reinitialize the loan calculator when the Elementor popup is opened
+jQuery(window).on('elementor/popup/show', () => {
+    initializeLoanCalculator(true);
 });
