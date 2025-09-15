@@ -205,7 +205,7 @@ echo '<div class="form-group ' . esc_attr($effective_apr_class) . '">
     echo '<div class="form-group calculate-button-wrapper">';
         $button_text = !empty($settings['calculate_button_text']) ? $settings['calculate_button_text'] : 'Calculate';
         echo '<button type="button" id="calculate-loan">' . esc_html($button_text) . '</button>';
-        echo '<span id="calculation-notes" class="calculation-notes"></span>';
+        echo '<span id="calculation-notes" class="calculation-notes">APR rate:</span>';
         echo '</div>'; // Close calculate-button-wrapper
 
     echo '</div>'; // Close outputs-grid
